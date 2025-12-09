@@ -1,4 +1,5 @@
-from config import rag, rag_corpus
+from rag.config import rag, rag_corpus
+from typing import List, Dict, Any
 
 def resolver_ids_por_nome(nomes_desejados):
     files = rag.list_files(rag_corpus.name)
@@ -16,17 +17,18 @@ def resolver_ids_por_nome(nomes_desejados):
     return ids
 
 
-def make_embedding(text: str, files: list):
-    print(rag_corpus.name)
+def make_embedding(text: str, files: list) -> Dict[str, Any]:
+    """
+    Retrieve relevant compliance document chunks from the RAG corpus.
+
+    Args:
+        text: User query.
+
+    Returns:
+        Dict with retrieved chunks, relevance score and sources.
+    """
 
     ids = resolver_ids_por_nome(files)
-
-    i = 0
-    print("Rodando a iteração sobre arquivos: ")
-    for f in files:
-        print(i)
-        print("Arquivo:", f)
-        i += 1
 
     rag_retrieval_config = rag.RagRetrievalConfig(
         top_k=3,  # Optional
@@ -45,6 +47,24 @@ def make_embedding(text: str, files: list):
         text=text,
         rag_retrieval_config=rag_retrieval_config,
     )
-    print("Segue a resposta gerada pelo modelo: ", response)
 
-make_embedding("Políticas de relacionamento amoroso", ["politica_compliance.txt"])
+    results: List[Dict[str, Any]] = []
+
+    for ctx in response.contexts.contexts:
+        results.append({
+            "text": ctx.text,
+            "score": float(ctx.score),
+            "source": ctx.source_display_name,
+            "uri": ctx.source_uri,
+        })
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+
+    print(f"query: {text} \n chunks: {results}")
+
+    return {
+        "query": text,
+        "chunks": results
+    }
+
+# make_embedding("A política permite $400 em 'Outros'?", ["politica_compliance.txt"])
