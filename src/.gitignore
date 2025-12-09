@@ -1,0 +1,131 @@
+# =========================
+# SISTEMA OPERACIONAL
+# =========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# LOGS E TEMPORÁRIOS
+# =========================
+*.log
+logs/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.pid
+
+# =========================
+# AMBIENTES VIRTUAIS (PYTHON)
+# =========================
+venv/
+.venv/
+env/
+ENV/
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+pip-wheel-metadata/
+
+# =========================
+# NODE / FRONTEND
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# BUILD DE FRONTEND
+# =========================
+dist/
+build/
+.out/
+.next/
+.cache/
+
+# =========================
+# VARIÁVEIS DE AMBIENTE
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# DOCKER
+# =========================
+*.local.yml
+docker-compose.override.yml
+
+# =========================
+# BANCOS DE DADOS
+# =========================
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# =========================
+# IDEs E EDITORES
+# =========================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# =========================
+# TESTES E RELATÓRIOS
+# =========================
+coverage/
+*.lcov
+reports/
+
+# =========================
+# CACHES GERAIS
+# =========================
+.cache/
+tmp/
+
+# =========================
+# ARQUIVOS DE TREINAMENTO (ML / IA)
+# =========================
+*.h5
+*.pt
+*.onnx
+checkpoints/
+models/
+wandb/
+
+# =========================
+# ARQUIVOS GRANDES / DADOS
+# =========================
+data/
+datasets/
+*.csv
+*.parquet
+
+# =========================
+# SEGURANÇA
+# =========================
+*.pem
+*.key
+*.crt
+secrets/
