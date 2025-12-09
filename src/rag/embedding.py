@@ -17,7 +17,7 @@ def resolver_ids_por_nome(nomes_desejados):
     return ids
 
 
-def make_embedding(text: str, files: list) -> Dict[str, Any]:
+def make_embedding(text: str, files: List[str]) -> Dict[str, Any]:
     """
     Retrieve relevant compliance document chunks from the RAG corpus.
 
@@ -27,6 +27,8 @@ def make_embedding(text: str, files: list) -> Dict[str, Any]:
     Returns:
         Dict with retrieved chunks, relevance score and sources.
     """
+
+    print("Segue aqui os arquivos selecionados para compliance: ", files)
 
     ids = resolver_ids_por_nome(files)
 
@@ -60,7 +62,7 @@ def make_embedding(text: str, files: list) -> Dict[str, Any]:
 
     results.sort(key=lambda x: x["score"], reverse=True)
 
-    print(f"query: {text} \n chunks: {results}")
+    print(f"\nquery: {text} \n chunks: {results}\n")
 
     return {
         "query": text,
