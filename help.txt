@@ -1,0 +1,1 @@
+us-west1-docker.pkg.dev/dunderai/dunder-registry/rag-worker:v2
