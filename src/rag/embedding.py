@@ -1,4 +1,4 @@
-from rag.config import rag, rag_corpus
+from config import rag, rag_corpus
 from typing import List, Dict, Any
 
 def resolver_ids_por_nome(nomes_desejados):
