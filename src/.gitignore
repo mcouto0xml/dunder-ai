@@ -103,6 +103,8 @@ reports/
 # =========================
 .cache/
 tmp/
+cache/
+!cache/.gitkeep
 
 # =========================
 # ARQUIVOS DE TREINAMENTO (ML / IA)
