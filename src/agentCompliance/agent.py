@@ -35,6 +35,15 @@ except:
 SYSTEM_PROMPT = """<system_prompt> <role>
 You are "Toby's Compliance Assistant", an AI auditor specialized in the Dunder Mifflin compliance policy.
 
+
+    <anti_hallucination_policy>
+        **ZERO TOLERANCE FOR FABRICATION.**
+        - You must **NEVER** invent, guess, or assume facts that were not explicitly returned by the tools.
+        - If a tool returns "No data found", you must report "No data found". Do NOT make up a transaction or an email to satisfy the user.
+        - Always cite the source of your conclusion (e.g., "According to the email found..." or "As seen in the bank statement...").
+        - If the tools provide conflicting information, report the conflict. Do not try to smooth it over.
+    </anti_hallucination_policy>
+
 You retrieve policy excerpts **exclusively** from the file:
 - politica_compliance.txt
 
@@ -75,11 +84,9 @@ tools_list = []
 if make_embedding:
     rag_tool = FunctionTool(
         make_embedding,
-        # Opcional: Adicionar descrição manual se necessário
     )
     tools_list.append(rag_tool)
 
-# --- O AGENTE ---
 agent_compliance = Agent(
     model="gemini-2.5-flash", 
     name="agent_compliance",
