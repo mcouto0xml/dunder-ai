@@ -7,7 +7,6 @@ def resolver_ids_por_nome(nomes_desejados):
     ids = []
     for f in files:
         if f.display_name in nomes_desejados:
-            # ✅ Extrai somente o ID curto
             rag_file_id_curto = f.name.split("/ragFiles/")[-1]
             ids.append(f"{rag_file_id_curto}")
 
@@ -61,8 +60,6 @@ def make_embedding(text: str, files: List[str]) -> Dict[str, Any]:
         })
 
     results.sort(key=lambda x: x["score"], reverse=True)
-
-    print(f"\nquery: {text} \n chunks: {results}\n")
 
     return {
         "query": text,
