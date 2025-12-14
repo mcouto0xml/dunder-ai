@@ -1,6 +1,8 @@
 # ARQUIVO: src/agentPandas/tools.py
 import pandas as pd
 import os
+import sys
+import io
 from typing import Optional, Dict, Any, Union
 from dotenv import load_dotenv
 
@@ -34,14 +36,14 @@ def _load_dataframe(path: str) -> pd.DataFrame:
         isinstance(_dataframe_cache["df"], pd.DataFrame)
         and _dataframe_cache["path"] == path
     ):
-        # Cache hit - não imprimir para reduzir ruído
         return _dataframe_cache["df"]
 
     # Caso contrário, carrega da nuvem e armazena no cache
     print(f"Carregando DataFrame de {path}...")
     df = pd.read_csv(path, sep=None, engine="python")
+    # Limpeza básica de colunas
     df.columns = df.columns.str.strip()
-
+    
     _dataframe_cache["df"] = df
     _dataframe_cache["path"] = path
 
@@ -55,10 +57,7 @@ def download_csv_from_bucket() -> Dict[str, Any]:
     print("Verificando acesso ao arquivo na nuvem...")
     try:
         path = _get_gs_path()
-
-        # Carrega o DataFrame completo no cache
         _load_dataframe(path)
-
         print(f"Conexão GCS estabelecida: {path}")
         return {"success": True, "local_path": path}
 
@@ -67,7 +66,6 @@ def download_csv_from_bucket() -> Dict[str, Any]:
 
 
 def load_csv_preview(local_path: str = "") -> Dict[str, Any]:
-    # Se o agente não passar o path, pega o padrão
     path = local_path if local_path else _get_gs_path()
     try:
         df = _load_dataframe(path)
@@ -89,22 +87,42 @@ def get_statistics(local_path: str = "") -> Dict[str, Any]:
         return {"error": str(e)}
 
 
+# --- AQUI ESTÁ A CORREÇÃO CRÍTICA ---
 def execute_pandas_code(local_path: str, code: str) -> str:
     path = local_path if local_path else _get_gs_path()
-    try:
-        # Usa o DataFrame do cache
-        df = _load_dataframe(path)
+    
+    # 1. Preparar captura de output (print)
+    old_stdout = sys.stdout
+    redirected_output = io.StringIO()
+    sys.stdout = redirected_output
 
+    try:
+        # Carrega DF
+        df = _load_dataframe(path)
+        
+        # Define escopo local para o exec
         local_scope = {"df": df, "pd": pd}
-        try:
-            return str(eval(code, {}, local_scope))
-        except:
-            exec(code, {}, local_scope)
+        
+        # 2. Executa o código
+        exec(code, {}, local_scope)
+        
+        # 3. Pega o que foi impresso
+        output = redirected_output.getvalue()
+        
+        # Lógica de fallback: se não imprimiu nada, tenta achar variável 'result'
+        if not output.strip():
             if "result" in local_scope:
                 return str(local_scope["result"])
-            return "Código executado."
+            return "Código executado com sucesso, mas NADA foi impresso. Use print() para ver o valor."
+            
+        return output
+
     except Exception as e:
-        return f"Erro no código: {str(e)}"
+        return f"Erro na execução do código Python: {str(e)}"
+    
+    finally:
+        # 4. IMPORTANTE: Restaurar o stdout original para não quebrar o servidor
+        sys.stdout = old_stdout
 
 
 def detect_fraud_patterns(local_path: str = "") -> Dict[str, Any]:
@@ -113,22 +131,25 @@ def detect_fraud_patterns(local_path: str = "") -> Dict[str, Any]:
         df = _load_dataframe(path)
 
         report: Dict[str, Any] = {}
+        # Tenta achar coluna de valor flexivelmente
         col_valor = next(
-            (c for c in df.columns if c.lower() in ["valor", "amount"]), None
+            (c for c in df.columns if c.lower() in ["valor", "amount", "value", "total"]), None
         )
 
         if col_valor:
-            # Smurfing simples
+            # Smurfing simples: duplicatas exatas de valor alto
             dups = df[df.duplicated(subset=[col_valor], keep=False)]
-            # Filtra duplicatas de valor alto (>100)
-            high_dups_mask = dups[col_valor] > 100  # type: ignore
-            high_dups = dups[high_dups_mask]  # type: ignore
+            
+            # Garante que é numérico
+            if pd.api.types.is_numeric_dtype(df[col_valor]):
+                high_dups_mask = dups[col_valor] > 100 
+                high_dups = dups[high_dups_mask]
 
-            if len(high_dups) > 0:
-                report["repeated_high_values"] = high_dups.head(5).to_dict(  # type: ignore
-                    orient="records"
-                )
+                if len(high_dups) > 0:
+                    report["repeated_high_values"] = high_dups.head(5).to_dict(orient="records")
+            else:
+                 report["warning"] = f"Coluna {col_valor} não é numérica."
 
-        return report if report else {"message": "Nenhum padrão óbvio."}
+        return report if report else {"message": "Nenhum padrão óbvio detectado."}
     except Exception as e:
         return {"error": str(e)}

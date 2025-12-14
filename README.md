@@ -1,206 +1,241 @@
-# Dunder Mifflin AI Agent System
+# 📄 Dunder AI - Auditoria Inteligente (ReadMe parcialmente gerado com Inteligência Artificial)
 
-Multi-agent system for expense management, fraud detection, and compliance checking.
+[![Video Demo](https://s2-techtudo.glbimg.com/Ldi23mFGjlZ2Z1BuhujEi4DygxQ=/0x0:1200x700/600x0/smart/filters:gifv():strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg)](https://youtube.com/seu-link-aqui)
 
-## Architecture
+> *"Limitless Paper in a Paperless World."*
 
-### Orchestrator (Root Agent)
-- **Location:** `src/orchestrator/`
-- **Name:** `expense_orchestrator`
-- **Role:** Main entry point that coordinates between specialized agents
-- **Run with:** `adk run orchestrator`
+A **Dunder AI** é um sistema de auditoria forense corporativa temático da série *The Office*. O projeto utiliza **Agentes de IA Generativa** orquestrados para analisar dados financeiros, e-mails corporativos e conformidade com regras, tudo encapsulado em uma interface nostálgica e "burocrática", gerenciada pela persona de Michael Scott.
 
-The orchestrator routes user requests to the appropriate specialized agent:
-- Fraud detection queries → AgentPandas
-- Policy/compliance questions → agentCompliance
-- Can coordinate both agents for complex requests
+---
+### Acesse o sistema:
+Além da execução local, detalhada mais adiante neste README, o Dunder AI também conta com um ambiente já publicado.
+Isso significa que você pode explorar todas as funcionalidades do sistema diretamente pelo navegador, sem precisar instalar dependências ou configurar o ambiente na sua máquina.
 
-### AgentPandas (Fraud Detection)
-- **Location:** `src/AgentPandas/`
-- **Name:** `fraud_detector`
-- **Role:** Analyzes CSV files from Google Cloud Storage for fraudulent transaction patterns
-- **Exports:** `agent_pandas`, `root_agent` (points to agent_pandas)
-- **Can run standalone:** Yes with `adk run AgentPandas`
-- **Key Features:**
-  - Downloads CSVs from GCS
-  - Statistical analysis and baseline detection
-  - Pattern detection (duplicates, threshold splitting, outliers)
-  - Custom pandas code execution
-  - Comprehensive fraud reports with severity levels
+Acesso: http://34.111.115.133/
+---
 
-### agentCompliance (Policy Checker)
-- **Location:** `src/agentCompliance/`
-- **Name:** `agent_compliance`
-- **Role:** Answers compliance policy questions using RAG over policy documents
-- **Exports:** `agent_compliance`, `root_agent` (points to agent_compliance)
-- **Can run standalone:** Yes with `adk run agentCompliance` (requires GCP auth for RAG)
-- **Key Features:**
-  - RAG-based policy retrieval
-  - Grounded answers with evidence
-  - Interprets spending limits, categories, and rules
+## 🏗️ Arquitetura dos Agentes
 
-## Running the System
+Abaixo detalhamos a arquitetura lógica de cada componente do sistema utilizando o **Google Agent Development Kit (ADK)** e **Gemini**.
 
-### Option 1: Main Orchestrator (Recommended for complex workflows)
-```bash
-cd src
-adk run orchestrator
+### 1. Michael Scott Persona (Chat + Voz)
+Este agente não realiza trabalho técnico. Seu objetivo é manter a persona, fazer piadas inadequadas e gerar áudio via ElevenLabs.
+
+```mermaid
+graph TD
+    User([👤 Usuário]) -->|Input| API[⚡ Flask API]
+    API -->|Prompt de Persona| Agent[👔 Michael Agent]
+    
+    subgraph "Cérebro do Michael"
+        Agent -->|Contexto: 'Hates Toby'| LLM((🤖 Gemini 2.5))
+        LLM -->|Resposta em Texto| Agent
+    end
+
+    subgraph "Voz (ElevenLabs)"
+        Agent -->|Texto| TTS[🔊 Text-to-Speech API]
+        TTS -->|Áudio MP3| API
+    end
+
+    API -->|Playback| User
 ```
 
-Then interact with queries like:
-- "Analyze gs://dunderai-transactions/expenses/jan-2024.csv for fraud"
-- "Does the policy allow splitting a $1000 purchase?"
-- "Check the CSV for fraud and tell me which violations break policy"
+### 2. Agente Financeiro (Python REPL & Pandas)
+O "Oscar Martinez" do sistema. Ele é capaz de escrever e executar código Python para analisar arquivos CSV pesados.
 
-### Option 2: Individual Agents (Direct access to specialists)
+```mermaid
+graph TD
+    User([👤 Usuário]) -->|Pergunta: 'Gastos com gasolina?'| Agent[📉 Finance Agent]
+    
+    subgraph "Ciclo de Raciocínio (ReAct)"
+        Agent -->|Decide Ferramenta| LLM((🤖 Gemini 2.5))
+        LLM -->|Gera Código Python| Tool[⚙️ Tool: execute_pandas_code]
+        
+        Tool -->|1. Carrega CSV do GCS| Bucket[(☁️ Google Cloud Storage)]
+        Tool -->|2. Executa Script| PythonRuntime[🐍 Python Engine]
+        PythonRuntime -->|3. Captura print()| Tool
+        
+        Tool -->|Resultado Numérico| Agent
+    end
 
-**Fraud Detection Agent:**
-```bash
-cd src
-adk run AgentPandas
-```
-Use for CSV fraud analysis queries directly.
-
-**Compliance Agent:**
-```bash
-cd src
-adk run agentCompliance
-```
-Use for policy questions directly.
-
-All three agents can be run standalone with `adk run`!
-
-## Project Structure
-
-```
-src/
-├── orchestrator/          # Root agent - coordinates other agents
-│   ├── __init__.py       # Exports: root_agent, run_orchestrator
-│   ├── agent.py          # Main orchestrator logic
-│   └── a.md              # Documentation
-│
-├── AgentPandas/          # Fraud detection specialist
-│   ├── __init__.py       # Exports: agent_pandas, root_agent, analyze_csv_for_fraud
-│   ├── agent.py          # Fraud detection agent (root_agent = agent_pandas)
-│   ├── tools.py          # CSV analysis tools
-│   └── a.md              # Documentation
-│
-├── agentCompliance/      # Policy compliance specialist
-│   ├── __init__.py       # Exports: agent_compliance, root_agent, run_agent
-│   ├── agent.py          # Compliance agent with RAG (root_agent = agent_compliance)
-│   └── a.md              # Documentation
-│
-├── agentEmail/           # Email agent (future)
-│   └── a.md
-│
-└── rag/                  # RAG infrastructure
-    ├── config.py         # RAG corpus configuration
-    ├── embedding.py      # Embedding utilities
-    └── ingest.py         # Document ingestion
-
-cache/                    # Downloaded CSV cache
-example_usage.py          # Example scripts
+    Agent -->|Explicação em Linguagem Natural| User
 ```
 
-## Configuration
+### 3. Agente Profiler (RAG em E-mails)
+O "Dwight Schrute" investigador. Usa RAG (Retrieval-Augmented Generation) para buscar evidências em e-mails não estruturados.
 
-All agents use:
-- **Project:** `dunderai`
-- **Location:** `us-west1`
-- **Model (orchestrator):** `gemini-2.0-flash-exp`
-- **Model (AgentPandas):** `gemini-2.0-flash-exp`
-- **Model (agentCompliance):** `gemini-2.5-flash`
+```mermaid
+graph TD
+    User([👤 Usuário]) -->|Pergunta: 'O que falaram sobre armas?'| Agent[🕵️ Profiler Agent]
 
-## Authentication
+    subgraph "Pipeline RAG"
+        Agent -->|Tool Call| Embed[⚙️ make_embedding]
+        Embed -->|Busca Semântica| VectorDB{🔍 Vertex AI Search}
+        VectorDB -->|Retorna Chunks de E-mails| Agent
+    end
 
-The system requires Google Cloud authentication:
-
-```bash
-# Set up Application Default Credentials
-gcloud auth application-default login
-
-# Or set service account key
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"
+    Agent -->|Contexto Recuperado + Pergunta| LLM((🤖 Gemini 2.5))
+    LLM -->|Relatório de Evidências| User
 ```
 
-## Example Workflows
+### 4. Agente Compliance (Verificação de Regras)
+O "Toby Flenderson". Compara intenções do usuário contra o manual de política da empresa.
 
-### 1. Fraud Detection
+```mermaid
+graph TD
+    User([👤 Usuário]) -->|Dúvida: 'Posso gastar $1000?'| Agent[⚖️ Compliance Agent]
+    
+    subgraph "Base de Conhecimento"
+        Agent -->|Consulta| Policy[📄 politica_compliance.txt]
+    end
+    
+    Agent -->|Fato vs Regra| LLM((🤖 Gemini 2.5))
+    LLM -->|Veredito: Aprovado/Negado| User
 ```
-User: "Analyze january-2024.csv in dunderai-transactions for fraud"
+### 5. Visão Geral do Sistema (Orquestrador)
 
-Orchestrator → AgentPandas:
-  1. Downloads CSV from GCS
-  2. Previews data structure
-  3. Calculates statistical baselines
-  4. Runs fraud pattern detection
-  5. Returns detailed report with severity levels
-```
-
-### 2. Policy Question
-```
-User: "Can I expense $400 in the 'Other' category?"
-
-Orchestrator → agentCompliance:
-  1. Uses RAG to retrieve relevant policy excerpts
-  2. Grounds answer in compliance documents
-  3. Returns answer with evidence and citations
-```
-
-### 3. Combined Analysis
-```
-User: "Check CSV for fraud and verify which findings violate policy"
-
-Orchestrator:
-  1. Calls AgentPandas for fraud detection
-  2. Reviews fraud findings
-  3. Calls agentCompliance for each major finding
-  4. Synthesizes combined report
+```mermaid
+graph TD
+    Frontend[💻 React Frontend] -->|HTTP/JSON| Backend[⚡ Flask Server :5000]
+    
+    Backend --> Rota1[Rota /michael]
+    Backend --> Rota2[Rota /finance]
+    Backend --> Rota3[Rota /profiler]
+    Backend --> Rota4[Rota /compliance]
+    
+    Rota1 --> Michael[👔 Michael Scott]
+    Rota2 --> Finance[📉 Financeiro]
+    Rota3 --> Profiler[🕵️ Profiler]
+    Rota4 --> Compliance[⚖️ Compliance]
 ```
 
-## Development
+### Design do Frontend
+O frontend foi desenvolvido com React + Vite e estilizado com Tailwind CSS.
 
-### Adding a New Agent
+Inspiração: O site da Dunder Mifflin (anos 2000), estética de papel timbrado, burocracia e minimalismo corporativo.
 
-1. Create directory: `src/newAgent/`
-2. Create `agent.py` with agent definition
-3. Export in `__init__.py`:
-   ```python
-   from .agent import root_agent  # If standalone
-   __all__ = ["root_agent"]
-   ```
-4. Update orchestrator to integrate (if needed)
+Elementos Chave:
 
-### Testing
+Fontes Monoespaçadas (Courier New) simulando relatórios datilografados.
 
-```bash
-# Test imports
-cd src
-python -c "from orchestrator import root_agent; print(root_agent.name)"
+Contraste Preto e Branco (Tinta e Papel).
 
-# Test with ADK
-adk run orchestrator
+Menu lateral fixo estilo intranet antiga.
+
+Feedback visual de "Carregando" piscante.
+
+### Instalação e Configuração
+Pré-requisitos
+Python 3.10 ou superior.
+
+Node.js 18 ou superior.
+
+Conta no Google Cloud Platform (com Vertex AI ativado).
+
+Conta na ElevenLabs (opcional, para voz).
+
+#### 1. Configurando o Backend (ADK + Python)
+Clone o repositório e navegue até a raiz.
+
+Crie e ative o ambiente virtual:
+
+```Bash
+
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
 ```
 
-## Troubleshooting
+Instale as dependências (incluindo o Google GenAI e ADK):
 
-**Error: "No root_agent found"**
-- Ensure `agent.py` exports `root_agent`
-- Check `__init__.py` imports it correctly
+```Bash
 
-**Error: "DefaultCredentialsError"**
-- Run `gcloud auth application-default login`
-- Or set `GOOGLE_APPLICATION_CREDENTIALS`
+pip install -r requirements.txt
+```
 
-**Error: RAG initialization fails**
-- agentCompliance requires GCP auth
-- orchestrator uses lazy imports to avoid this on startup
-- Auth only needed when compliance tool is actually called
+Crie um arquivo .env na raiz do projeto com suas chaves:
 
-## Next Steps
+```Bash
+# Google Cloud & Gemini
+GOOGLE_API_KEY="sua_chave_aqui"
+PROJECT_ID="seu_project_id"
+LOCATION="us-central1"
 
-- [ ] Implement agentEmail for email notifications
-- [ ] Add session persistence
-- [ ] Create web UI with `adk web`
-- [ ] Add unit tests
-- [ ] Deploy to Agent Engine
+# Google Cloud Storage (Para o CSV financeiro)
+BUCKET_NAME="nome_do_seu_bucket"
+BLOB_NAME="data/transacoes_bancarias.csv"
+
+# ElevenLabs (Voz do Michael)
+ELEVENLABS_API_KEY="sua_chave_elevenlabs"
+MICHAEL_VOICE_ID="ErXwobaYiN019PkySvjV"
+```
+
+#### 2. Configurando o Frontend
+Abra um novo terminal e entre na pasta do front:
+
+```Bash
+
+cd dunder-frontend
+```
+
+Instale as dependências do Node:
+
+```Bash
+npm install
+```
+
+### Como Rodar:
+Você precisará de dois terminais rodando simultaneamente.
+
+Terminal 1: Backend API
+
+```Bash
+
+# Na raiz do projeto
+python src/api/app.py
+```
+
+O servidor ficará online em http://localhost:5000. Documentação Swagger: http://localhost:5000/docs.
+
+Terminal 2: Frontend
+
+```Bash
+
+# Na pasta dunder-frontend
+npm run dev
+```
+
+Acesse a interface em http://localhost:5173.
+
+Guia de Testes (O que perguntar?)
+Para o Michael:
+
+"Tell me a joke about Toby."
+
+"What is the meaning of life?"
+
+Para o Financeiro (CSV):
+
+"Qual o total gasto em restaurantes?"
+
+"Quais foram os 3 maiores gastos do Michael Scott?"
+
+Para o Profiler (E-mails):
+
+"O que o Dwight falou sobre segurança ou armas?"
+
+"Existe algum plano secreto mencionado nos e-mails?"
+
+Para o Compliance:
+
+"Posso comprar bebidas alcoólicas com o cartão da empresa?"
+
+"É permitido gastar $1000 sem recibo?"
+
+👥 Créditos
+Fernando Soares de Oliveira
+Murilo Couto de Oliveira
+Ian Pereira Simão
+
+"I am Beyoncé, always." - Michael Scott 

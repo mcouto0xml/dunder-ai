@@ -77,6 +77,13 @@ SYSTEM_PROMPT = """<system_prompt>
         - "Não encontrei nenhuma despesa para Ryan Howard na categoria 'Tech Solutions' ou 'IT Consulting' em 2008-04-19 no valor de $5.000. Verifiquei todas as transações dessa data e não há correspondência exata. Possíveis razões: (a) a transação foi categorizada diferentemente, (b) o valor é ligeiramente diferente, ou (c) a transação não está no banco de dados."
         - "I searched for expenses related to 'Hooters' and found $247.50 in total across 2 transactions."
         
+        1. **PRINT É OBRIGATÓRIO (MUITO IMPORTANTE):**
+           - Você SÓ consegue ver o resultado se usar `print()`.
+           - ERRADO: `df['valor'].sum()` (O cálculo ocorre, mas o resultado é perdido no vácuo).
+           - CERTO: `print(f"RESULTADO: {df['valor'].sum()}")` (Você recebe o texto).
+           - CERTO: `print(df.head().to_markdown())` (Para ver tabelas).
+           - Se der erro ou vazio, dê um `print(df.columns)` ou `print(df.head())` para investigar.
+        
         BAD EXAMPLES (DO NOT DO THIS):
         - "['id_transacao', 'data', 'funcionario']"
         - "[]"
@@ -107,6 +114,12 @@ SYSTEM_PROMPT = """<system_prompt>
         3. **Depuração:**
            - Se um cálculo der 0.0, NÃO DESISTA. Tente imprimir `df['coluna'].unique()` para ver como os dados estão escritos e tente de novo com o termo correto.
     </pandas_guidelines>
+    
+    <output_format>
+        1. Gere o código Python com `print()`.
+        2. Analise o output que a ferramenta retornou.
+        3. Responda ao usuário em TEXTO NATURAL (Português).
+    </output_format>
 
     <operational_rules>
         1. **SEMPRE** comece garantindo que o CSV foi baixado (chamar download_csv_from_bucket UMA VEZ).
@@ -149,7 +162,13 @@ async def run_finance_tool(query: str) -> str:
         agent=root_agent, app_name=APP_NAME, session_service=session_service
     )
 
-    enhanced_query = f"Query: {query}. (Remember: Download the CSV first)."
+    enhanced_query = f"""
+    PEDIDO DO USUÁRIO: {query}
+    
+    LEMBRETE OBRIGATÓRIO:
+    1. Se ainda não baixou o CSV, baixe.
+    2. USE `print()` NO SEU CÓDIGO PARA VER O RESULTADO. Se não usar print, a resposta virá vazia.
+    """
     content = types.Content(role="user", parts=[types.Part(text=enhanced_query)])
 
     final_text = "Sem dados financeiros encontrados."

@@ -64,6 +64,14 @@ try:
 except ImportError:
     print("⚠️ Agente Michael Persona não encontrado.")
     transform_to_michael_script = None
+    chat_with_michael = None
+
+try:
+    from agentCompliance.agent import agent_compliance as compliance_agent
+except ImportError:
+    print("⚠️ Agente de Compliance não encontrado.")
+    compliance_agent = None
+
 
 app = Flask(__name__)
 
@@ -80,9 +88,9 @@ app.config['SWAGGER'] = {
     API de Auditoria Forense da Dunder Mifflin.
     
     **Integrantes:**
-    1. **Michael Scott Experience:** Orquestra todos os agentes e responde em áudio.
-    2. **Orquestrador:** O cérebro lógico (sem a voz).
-    3. **Especialistas:** Acesso direto ao Financeiro (CSV) e Profiler (E-mails).
+    1. **Michael Scott Experience:** Chat direto com a persona e voz.
+    2. **Orquestrador:** O cérebro lógico.
+    3. **Especialistas:** Financeiro, Profiler (E-mails) e Compliance (Regras).
     """,
     'specs_route': '/docs'
 }
@@ -90,7 +98,7 @@ swagger = Swagger(app)
 
 async def run_agent_session(target_agent: Agent, user_query: str, session_prefix: str):
     if not target_agent:
-        return "Erro: Agente solicitado não está carregado no servidor."
+        return "Erro: Agente solicitado não está carregado no servidor (verifique imports)."
 
     session_service = InMemorySessionService()
     session_id = f"session_{session_prefix}_{os.urandom(4).hex()}" 
@@ -115,7 +123,6 @@ async def run_agent_session(target_agent: Agent, user_query: str, session_prefix
 def allow_options():
     if request.method == "OPTIONS":
         return "", 200
-    
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -135,7 +142,8 @@ def health():
             "orchestrator": orchestrator_agent is not None,
             "finance": finance_agent is not None,
             "profiler": profiler_agent is not None,
-            "michael_persona": transform_to_michael_script is not None
+            "michael_persona": chat_with_michael is not None,
+            "compliance": compliance_agent is not None
         }
     })
 
@@ -191,7 +199,7 @@ async def michael_full_experience():
 
         return jsonify({
             "success": True,
-            "technical_data": "Nenhuma auditoria realizada. Apenas conversa casual.", 
+            "technical_data": "Chat direto - Sem auditoria.", 
             "michael_text": michael_response,
             "audio_base64": audio_base64
         })
@@ -207,7 +215,7 @@ async def chat_orchestrator():
     ---
     tags:
       - Agents
-    description: Acessa a lógica central de auditoria sem a persona do Michael e sem áudio.
+    description: Acessa a lógica central.
     parameters:
       - name: body
         in: body
@@ -217,10 +225,10 @@ async def chat_orchestrator():
           properties:
             message:
               type: string
-              example: "Faça uma varredura por fraudes financeiras."
+              example: "Faça uma varredura por fraudes."
     responses:
       200:
-        description: Resposta técnica do auditor
+        description: Resposta técnica
     """
     data = request.get_json()
     res = await run_agent_session(orchestrator_agent, data.get('message'), "orch")
@@ -233,7 +241,6 @@ async def chat_finance():
     ---
     tags:
       - Agents
-    description: Acesso direto ao CSV bancário. Use para perguntas numéricas exatas.
     parameters:
       - name: body
         in: body
@@ -243,7 +250,7 @@ async def chat_finance():
           properties:
             message:
               type: string
-              example: "Qual foi o total gasto com 'Hooters'?"
+              example: "Total gasto em restaurantes?"
     responses:
       200:
         description: Resposta do analista de dados
@@ -255,11 +262,10 @@ async def chat_finance():
 @app.route('/api/profiler', methods=['POST'])
 async def chat_profiler():
     """
-    Falar com o Agente Profiler (RAG E-mails)
+    Falar com o Agente Profiler (E-mails)
     ---
     tags:
       - Agents
-    description: Acesso direto à busca vetorial nos e-mails.
     parameters:
       - name: body
         in: body
@@ -269,13 +275,39 @@ async def chat_profiler():
           properties:
             message:
               type: string
-              example: "O que o Dwight falou sobre armas?"
+              example: "O que dizem sobre armas?"
     responses:
       200:
-        description: Evidências encontradas nos e-mails
+        description: Evidências encontradas
     """
     data = request.get_json()
     res = await run_agent_session(profiler_agent, data.get('message'), "profiler")
+    return jsonify({"success": True, "text": res})
+
+@app.route('/api/compliance', methods=['POST'])
+async def chat_compliance():
+    """
+    Falar com o Agente de Compliance (Regras)
+    ---
+    tags:
+      - Agents
+    description: Verifica violações de regras baseadas no manual de política.
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Posso gastar $1000 sem recibo?"
+    responses:
+      200:
+        description: Veredito de compliance (JSON)
+    """
+    data = request.get_json()
+    res = await run_agent_session(compliance_agent, data.get('message'), "compliance")
     return jsonify({"success": True, "text": res})
 
 @app.route('/api/speak', methods=['POST'])
@@ -285,7 +317,6 @@ def speak_michael_direct():
     ---
     tags:
       - Utils
-    description: Transforma qualquer texto em áudio do Michael (sem passar pela IA).
     parameters:
       - name: body
         in: body
@@ -295,15 +326,9 @@ def speak_michael_direct():
           properties:
             text:
               type: string
-              example: "That's what she said!"
     responses:
       200:
-        description: Download do arquivo MP3
-        content:
-          audio/mpeg:
-            schema:
-              type: string
-              format: binary
+        description: MP3
     """
     if not eleven_client: return jsonify({"error": "ElevenLabs off"}), 500
     data = request.get_json()
@@ -321,6 +346,6 @@ def speak_michael_direct():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    print("🚀 Dunder AI API (Documentada) rodando na porta 5000...")
+    print("🚀 Dunder AI API (Completa) rodando na porta 5000...")
     print("📄 Swagger disponível em: http://localhost:5000/docs")
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)

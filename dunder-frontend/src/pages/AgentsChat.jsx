@@ -19,7 +19,7 @@ const agentConfigs = {
     },
     compliance: {
         title: "Compliance & Regras",
-        endpoint: "/api/compliance", // Assumindo que você criará essa rota no futuro
+        endpoint: "/api/compliance", 
         description: "Verificação de regras e políticas da empresa.",
         icon: Scale,
         placeholder: "Ex: É permitido gastar mais de $100 sem recibo?"
