@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // URL base da sua API Flask rodando localmente
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://dunder-api-330564499868.europe-west1.run.app';
 
 const ChatInterface = ({ title, endpoint, personaImage, placeholder, initialMessage }) => {
   const [messages, setMessages] = useState([
