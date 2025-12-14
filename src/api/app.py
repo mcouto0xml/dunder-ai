@@ -60,12 +60,18 @@ except ImportError:
 
 try:
     from michael.agent import chat_with_michael
+    transform_to_michael_script = True
 except ImportError:
     print("⚠️ Agente Michael Persona não encontrado.")
     transform_to_michael_script = None
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    supports_credentials=False
+)
 
 app.config['SWAGGER'] = {
     'title': 'Dunder AI - The Office API',
@@ -103,6 +109,13 @@ async def run_agent_session(target_agent: Agent, user_query: str, session_prefix
             final_response = event.content.parts[0].text
             
     return final_response
+
+
+@app.before_request
+def allow_options():
+    if request.method == "OPTIONS":
+        return "", 200
+    
 
 @app.route('/health', methods=['GET'])
 def health():
