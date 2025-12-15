@@ -44,20 +44,20 @@ O "Oscar Martinez" do sistema. Ele é capaz de escrever e executar código Pytho
 
 ```mermaid
 graph TD
-    User([👤 Usuário]) -->|Pergunta: 'Gastos com gasolina?'| Agent[📉 Finance Agent]
+    User[Usuario] -->|Pergunta: Gastos com gasolina| Agent[Finance Agent]
     
-    subgraph "Ciclo de Raciocínio (ReAct)"
-        Agent -->|Decide Ferramenta| LLM((🤖 Gemini 2.5))
-        LLM -->|Gera Código Python| Tool[⚙️ Tool: execute_pandas_code]
+    subgraph "Ciclo de Raciocinio ReAct"
+        Agent -->|Decide ferramenta| LLM[Gemini 2.5]
+        LLM -->|Gera codigo Python| Tool[Tool execute_pandas_code]
         
-        Tool -->|1. Carrega CSV do GCS| Bucket[(☁️ Google Cloud Storage)]
-        Tool -->|2. Executa Script| PythonRuntime[🐍 Python Engine]
-        PythonRuntime -->|3. Captura print()| Tool
+        Tool -->|Carrega CSV do GCS| Bucket[Google Cloud Storage]
+        Tool -->|Executa script Python| PythonRuntime[Python Engine]
+        PythonRuntime -->|Captura saida do script| Tool
         
-        Tool -->|Resultado Numérico| Agent
+        Tool -->|Resultado numerico| Agent
     end
 
-    Agent -->|Explicação em Linguagem Natural| User
+    Agent -->|Explicacao em linguagem natural| User
 ```
 
 ### 3. Agente Profiler (RAG em E-mails)
@@ -208,34 +208,33 @@ npm run dev
 
 Acesse a interface em http://localhost:5173.
 
-Guia de Testes (O que perguntar?)
-Para o Michael:
+### Guia de Testes (O que perguntar?)
+#### Para o Michael:
+> "Tell me a joke about Toby."
 
-"Tell me a joke about Toby."
+> "What is the meaning of life?"
 
-"What is the meaning of life?"
+#### Para o Financeiro (CSV):
 
-Para o Financeiro (CSV):
+> "Qual o total gasto em restaurantes?"
 
-"Qual o total gasto em restaurantes?"
+> "Quais foram os 3 maiores gastos do Michael Scott?"
 
-"Quais foram os 3 maiores gastos do Michael Scott?"
+#### Para o Profiler (E-mails):
 
-Para o Profiler (E-mails):
+> "O que o Dwight falou sobre segurança ou armas?"
 
-"O que o Dwight falou sobre segurança ou armas?"
+> "Existe algum plano secreto mencionado nos e-mails?"
 
-"Existe algum plano secreto mencionado nos e-mails?"
+#### Para o Compliance:
 
-Para o Compliance:
+> "Posso comprar bebidas alcoólicas com o cartão da empresa?"
 
-"Posso comprar bebidas alcoólicas com o cartão da empresa?"
+> "É permitido gastar $1000 sem recibo?"
 
-"É permitido gastar $1000 sem recibo?"
+## Créditos
+> [Fernando Soares de Oliveira](https://www.linkedin.com/in/fernando-soares-de-oliveira/)
+> [Murilo Couto de Oliveira](https://www.linkedin.com/in/murilo-couto-oliveira/)
+> [Ian Pereira Simão](https://www.linkedin.com/in/ian-pereira-simao/)
 
-👥 Créditos
-Fernando Soares de Oliveira
-Murilo Couto de Oliveira
-Ian Pereira Simão
-
-"I am Beyoncé, always." - Michael Scott 
+"I am Beyoncé, always." - Grande Michael Scott
