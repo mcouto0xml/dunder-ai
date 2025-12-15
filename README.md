@@ -58,6 +58,7 @@ graph TD
     end
 
     Agent -->|Explicacao em linguagem natural| User
+
 ```
 
 ### 3. Agente Profiler (RAG em E-mails)
