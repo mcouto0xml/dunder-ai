@@ -90,21 +90,146 @@ def get_statistics(local_path: str = "") -> Dict[str, Any]:
 
 
 def execute_pandas_code(local_path: str, code: str) -> str:
+    """
+    Executa código Pandas e SEMPRE retorna o resultado.
+
+    O código deve ser UMA EXPRESSÃO que retorna um valor:
+    - CORRETO: df['valor'].sum()
+    - ERRADO: resultado = df['valor'].sum()
+
+    Se detectarmos um assignment simples, tentamos corrigi-lo automaticamente.
+    """
     path = local_path if local_path else _get_gs_path()
     try:
         # Usa o DataFrame do cache
         df = _load_dataframe(path)
 
         local_scope = {"df": df, "pd": pd}
+
+        # Log do código recebido para debug
+        print(f"[execute_pandas_code] Código recebido: {code[:100]}...")
+
+        # Validação prévia: detecta código claramente mal escrito
+        code_stripped = code.strip()
+
+        # Verifica se é um assignment simples de uma linha (caso comum de erro)
+        import re
+
+        simple_assignment = re.match(r"^\s*(\w+)\s*=\s*(.+)$", code_stripped, re.DOTALL)
+
+        if simple_assignment and "\n" not in code_stripped:
+            var_name = simple_assignment.group(1)
+            expression = simple_assignment.group(2).strip()
+
+            # Se detectamos assignment simples, avisa antes de tentar executar
+            print(
+                f"[execute_pandas_code] ⚠️ AVISO: Detectado assignment simples '{var_name} = ...'. Tentando auto-correção..."
+            )
+
+            # Tenta executar apenas a expressão diretamente
+            try:
+                result = eval(expression, {}, local_scope)
+                if result is None:
+                    return "❌ BAD CODE: Your expression returns None. The code is invalid. CORRECT IT and TRY AGAIN!"
+                print(
+                    f"[execute_pandas_code] ✅ AUTO-CORRIGIDO: Executei apenas a expressão, ignorando o assignment"
+                )
+                return f"🔧 AUTO-CORRECTED (removed assignment): {str(result)}"
+            except Exception as e:
+                print(f"[execute_pandas_code] ❌ Falha na auto-correção: {str(e)}")
+                return f"❌ BAD CODE: This code is badly written and invalid. Error: {str(e)}. CORRECT IT: Remove the assignment '{var_name} =' and write only the expression '{expression}'. TRY AGAIN!"
+
+        # Primeiro tenta avaliar como expressão (para retornar o resultado diretamente)
         try:
-            return str(eval(code, {}, local_scope))
-        except:
-            exec(code, {}, local_scope)
-            if "result" in local_scope:
-                return str(local_scope["result"])
-            return "Código executado."
+            result = eval(code, {}, local_scope)
+            # Se o resultado for None, pode ser que o código não retornou nada
+            if result is None:
+                return "❌ BAD CODE: Your code returns None (no value). This is invalid. CORRECT IT to return an actual value and TRY AGAIN!"
+            print(f"[execute_pandas_code] Resultado via eval(): {str(result)[:200]}")
+            return str(result)
+        except Exception as eval_error:
+            # Se eval() falhar por QUALQUER motivo, tenta exec()
+            # Isso inclui SyntaxError, NameError, etc.
+            print(f"[execute_pandas_code] eval() falhou, tentando exec()...")
+
+            import io
+            import sys
+
+            old_stdout = sys.stdout
+            sys.stdout = captured_output = io.StringIO()
+
+            try:
+                exec(code, {}, local_scope)
+
+                # Restaura stdout
+                sys.stdout = old_stdout
+                output = captured_output.getvalue()
+
+                # Se há uma variável 'result' definida, retorna ela
+                if "result" in local_scope:
+                    result_value = local_scope["result"]
+                    if result_value is None:
+                        return "None (a variável 'result' está vazia)"
+                    print(
+                        f"[execute_pandas_code] Resultado via local_scope['result']: {str(result_value)[:200]}"
+                    )
+                    return str(result_value)
+
+                # Se há output capturado, retorna
+                if output.strip():
+                    print(
+                        f"[execute_pandas_code] Resultado via stdout: {output.strip()[:200]}"
+                    )
+                    return output.strip()
+
+                # Se chegou aqui, o código não retornou nada
+                # Vamos tentar detectar assignments simples e corrigir automaticamente
+                print(
+                    f"[execute_pandas_code] Código não retornou valor, tentando detectar assignment..."
+                )
+
+                # Detecta padrão: variavel = expressao
+                import re
+
+                assignment_match = re.match(
+                    r"^\s*(\w+)\s*=\s*(.+)$", code.strip(), re.DOTALL
+                )
+
+                if assignment_match:
+                    var_name = assignment_match.group(1)
+                    expression = assignment_match.group(2)
+
+                    # Verifica se a variável foi criada no local_scope
+                    if var_name in local_scope:
+                        auto_corrected_value = local_scope[var_name]
+                        print(
+                            f"[execute_pandas_code] 🔧 AUTO-CORREÇÃO: Detectado assignment '{var_name} = ...', retornando valor de '{var_name}'"
+                        )
+                        return f"🔧 AUTO-CORRIGIDO: {str(auto_corrected_value)}"
+
+                    # Se não está no local_scope, tenta executar apenas a expressão
+                    try:
+                        print(
+                            f"[execute_pandas_code] 🔧 Tentando executar apenas a expressão: {expression[:100]}"
+                        )
+                        result = eval(expression, {}, local_scope)
+                        print(
+                            f"[execute_pandas_code] ✅ Expressão executada com sucesso!"
+                        )
+                        return f"🔧 AUTO-CORRIGIDO (executei apenas a expressão): {str(result)}"
+                    except:
+                        pass
+
+                # Se não conseguimos corrigir automaticamente, retorna mensagem de erro instrutiva
+                return "❌ BAD CODE: This code is badly written and invalid. You used assignment (variable = ...) instead of returning a value. CORRECT IT: Remove the variable assignment and write only the expression. Example: instead of 'soma = df[\"valor\"].sum()' write just 'df[\"valor\"].sum()'. TRY AGAIN with the corrected code!"
+
+            finally:
+                sys.stdout = old_stdout
+
     except Exception as e:
-        return f"Erro no código: {str(e)}"
+        error_msg = f"Erro no código: {str(e)}"
+        print(f"[execute_pandas_code] ❌ {error_msg}")
+        return error_msg
 
 
 def detect_fraud_patterns(local_path: str = "") -> Dict[str, Any]:
