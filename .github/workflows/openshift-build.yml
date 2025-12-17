@@ -1,0 +1,23 @@
+name: OpenShift Build
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install oc
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4"
+
+      - name: Login
+        run: |
+          oc login "${{ secrets.OPENSHIFT_SERVER }}" \
+            --token="${{ secrets.OPENSHIFT_TOKEN }}" \
+            --insecure-skip-tls-verify=true
+
+      - name: Start BuildConfig
+        run: |
+          oc start-build bc/dunder-bc -n default --follow
