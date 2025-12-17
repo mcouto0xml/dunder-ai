@@ -1,0 +1,18 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  namespace: default
+  name: dunder-bc
+spec:
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com/mcouto0xml/dunder-ai.git'
+    contextDir: /src
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: lil
+        name: 'dunderai:1.0'

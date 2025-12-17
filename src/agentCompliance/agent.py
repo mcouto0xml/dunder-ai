@@ -8,6 +8,8 @@ from google.genai import types
 import sys, os, uuid, asyncio
 import vertexai
 
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA TESTE TESTE TESTE
+
 # --- SETUP DE CAMINHOS ---
 # Garante que conseguimos importar o 'rag' mesmo rodando de lugares diferentes
 current_dir = os.path.dirname(os.path.abspath(__file__))

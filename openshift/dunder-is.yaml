@@ -1,0 +1,13 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: dunder-is
+spec:
+  tags:
+  - name: "1.0"
+    from:
+      kind: ImageStreamTag
+      name: dunderai:1.0
+      namespace: lil
+    referencePolicy:
+      type: Source

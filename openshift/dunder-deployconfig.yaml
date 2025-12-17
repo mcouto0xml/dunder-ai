@@ -1,0 +1,279 @@
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: dunderai
+  namespace: default
+  uid: 8ba8f8b6-8352-4b90-b9b7-2e5f4599ae30
+  resourceVersion: '110001'
+  generation: 2
+  creationTimestamp: '2025-12-16T20:22:07Z'
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2025-12-16T20:22:07Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:replicas': {}
+          'f:selector':
+            .: {}
+            'f:app': {}
+          'f:strategy':
+            'f:activeDeadlineSeconds': {}
+            'f:rollingParams':
+              .: {}
+              'f:intervalSeconds': {}
+              'f:maxSurge': {}
+              'f:maxUnavailable': {}
+              'f:timeoutSeconds': {}
+              'f:updatePeriodSeconds': {}
+            'f:type': {}
+          'f:template':
+            .: {}
+            'f:metadata':
+              .: {}
+              'f:creationTimestamp': {}
+              'f:labels':
+                .: {}
+                'f:app': {}
+            'f:spec':
+              .: {}
+              'f:containers':
+                .: {}
+                'k:{"name":"container"}':
+                  'f:image': {}
+                  'f:terminationMessagePolicy': {}
+                  .: {}
+                  'f:resources': {}
+                  'f:env':
+                    'k:{"name":"MICHAEL_VOICE_ID"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    'k:{"name":"ELEVENLABS_API_KEY"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                    'k:{"name":"GOOGLE_CLOUD_PROJECT"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    .: {}
+                    'k:{"name":"BUCKET_NAME"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    'k:{"name":"SECRET_KEY"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                    'k:{"name":"ACESS_KEY"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                    'k:{"name":"GOOGLE_GENAI_USER_VERTEXAI"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    'k:{"name":"GOOGLE_CLOUD_LOCATION"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    'k:{"name":"BLOB_NAME"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                  'f:terminationMessagePath': {}
+                  'f:imagePullPolicy': {}
+                  'f:ports':
+                    .: {}
+                    'k:{"containerPort":8080,"protocol":"TCP"}':
+                      .: {}
+                      'f:containerPort': {}
+                      'f:protocol': {}
+                  'f:name': {}
+              'f:dnsPolicy': {}
+              'f:restartPolicy': {}
+              'f:schedulerName': {}
+              'f:securityContext': {}
+              'f:terminationGracePeriodSeconds': {}
+    - manager: openshift-controller-manager
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2025-12-16T20:22:09Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:triggers': {}
+    - manager: openshift-controller-manager
+      operation: Update
+      apiVersion: apps.openshift.io/v1
+      time: '2025-12-16T20:23:00Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          'f:availableReplicas': {}
+          'f:conditions':
+            .: {}
+            'k:{"type":"Available"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:status': {}
+              'f:type': {}
+            'k:{"type":"Progressing"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+              'f:type': {}
+          'f:details':
+            .: {}
+            'f:causes': {}
+            'f:message': {}
+          'f:latestVersion': {}
+          'f:observedGeneration': {}
+          'f:replicas': {}
+          'f:unavailableReplicas': {}
+          'f:updatedReplicas': {}
+      subresource: status
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - container
+        from:
+          kind: ImageStreamTag
+          namespace: lil
+          name: 'dunderai:1.0'
+        lastTriggeredImage: 'image-registry.openshift-image-registry.svc:5000/lil/dunderai@sha256:0be512a5f289b5244b61a01a911fc444a22d2d18d2a756e75d8c119c9f1a86ec'
+    - type: ConfigChange
+  replicas: 3
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: dunderai
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: dunderai
+    spec:
+      containers:
+        - name: container
+          image: 'image-registry.openshift-image-registry.svc:5000/lil/dunderai@sha256:0be512a5f289b5244b61a01a911fc444a22d2d18d2a756e75d8c119c9f1a86ec'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: BLOB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: BLOB_NAME
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: BUCKET_NAME
+            - name: GOOGLE_CLOUD_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: GOOGLE_CLOUD_LOCATION
+            - name: GOOGLE_CLOUD_PROJECT
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: GOOGLE_CLOUD_PROJECT
+            - name: GOOGLE_GENAI_USER_VERTEXAI
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: GOOGLE_GENAI_USE_VERTEXAI
+            - name: MICHAEL_VOICE_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: dunder-cm
+                  key: MICHAEL_VOICE_ID
+            - name: ACESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dunder-secrets
+                  key: ACCESS_KEY
+            - name: ELEVENLABS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dunder-secrets
+                  key: ELEVENLABS_API_KEY
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dunder-secrets
+                  key: SECRET_KEY
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+status:
+  latestVersion: 1
+  observedGeneration: 2
+  replicas: 3
+  updatedReplicas: 3
+  availableReplicas: 0
+  unavailableReplicas: 3
+  details:
+    message: config change
+    causes:
+      - type: ConfigChange
+  conditions:
+    - type: Progressing
+      status: 'True'
+      lastUpdateTime: '2025-12-16T20:22:40Z'
+      lastTransitionTime: '2025-12-16T20:22:14Z'
+      reason: NewReplicationControllerAvailable
+      message: replication controller "dunderai-1" successfully rolled out
+    - type: Available
+      status: 'False'
+      lastUpdateTime: '2025-12-16T20:22:59Z'
+      lastTransitionTime: '2025-12-16T20:22:59Z'
+      message: Deployment config does not have minimum availability.

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dunder-cm
+data:
+  GOOGLE_GENAI_USE_VERTEXAI: "1"
+  GOOGLE_CLOUD_PROJECT: dunderai
+  GOOGLE_CLOUD_LOCATION: us-west1
+  BUCKET_NAME: dunder-data
+  BLOB_NAME: data/transacoes_bancarias.csv
+  MICHAEL_VOICE_ID: vxXIz4jd885iK3G3bqGP
