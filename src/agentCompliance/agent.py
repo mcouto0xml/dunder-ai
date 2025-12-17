@@ -10,6 +10,7 @@ import vertexai
 
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA TESTE TESTE TESTE
 # VAI MALANDRA HAM HAM
+# TESTE TESTE TESTE
 
 # --- SETUP DE CAMINHOS ---
 # Garante que conseguimos importar o 'rag' mesmo rodando de lugares diferentes
