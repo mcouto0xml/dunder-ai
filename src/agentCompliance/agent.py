@@ -9,6 +9,7 @@ import sys, os, uuid, asyncio
 import vertexai
 
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA TESTE TESTE TESTE
+# VAI MALANDRA HAM HAM
 
 # --- SETUP DE CAMINHOS ---
 # Garante que conseguimos importar o 'rag' mesmo rodando de lugares diferentes
